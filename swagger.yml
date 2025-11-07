@@ -1,0 +1,1030 @@
+openapi: 3.0.3
+info:
+  title: EduQuest
+  description: |
+    Приложение для улучшения качества образования с элементами геймификации.
+    **Основные возможности:**
+    - Анонимная обратная связь после пар
+    - Вопросы во время занятий
+    - Викторины с начислением баллов
+    - Карточки для повторения
+    - Тренажёр решения задач
+    - Возможность обмена баллов на награды
+    **Роли пользователей:**
+    - student — студент
+    - teacher — преподаватель
+    - admin — администратор
+  version: 1.0.0
+  contact:
+    name: EduQuest Team
+    email: support@eduquest.ru
+servers:
+  - url: http://localhost/eduquest
+    description: Локальный сервер разработки
+  - url: https://api.eduquest.ru
+    description: Продакшен сервер
+tags:
+  - name: Authentication
+    description: Аутентификация и регистрация
+  - name: Users
+    description: Управление пользователями
+  - name: Groups
+    description: Учебные группы
+  - name: Questions
+    description: Вопросы во время пары
+  - name: Feedback
+    description: Анонимное оценивание пары
+  - name: Quiz
+    description: Викторины и баллы
+  - name: Cards
+    description: Карточки для повторения
+  - name: Trainer
+    description: Тренажёр решения задач
+  - name: Rewards
+    description: Награды и обмен баллов
+  - name: Lectures
+    description: Лекции и расписание
+
+paths:
+  # Группы
+  /api/groups:
+    post:
+      tags: [Groups]
+      summary: Создать новую учебную группу
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+      responses:
+        '201':
+          description: Группа создана
+        '400':
+          description: Некорректные данные
+        '403':
+          description: Только администраторы могут создавать группы
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+    get:
+      tags: [Groups]
+      summary: Получить список учебных групп
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Список групп
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+
+  # Карточки
+  /api/cards:
+    post:
+      tags: [Cards]
+      summary: Создать новую карточку
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Card'
+      responses:
+        '201':
+          description: Карточка создана
+        '400':
+          description: Некорректные данные
+        '403':
+          description: Только преподаватели могут создавать карточки
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+    get:
+      tags: [Cards]
+      summary: Получить карточки для повторения
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subject
+          in: query
+          schema:
+            type: string
+        - name: topic
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Список карточек
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Card'
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+
+  # Задачи
+  /api/trainer/problems:
+    post:
+      tags: [Trainer]
+      summary: Создать новую задачу для тренажёра
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Problem'
+      responses:
+        '201':
+          description: Задача создана
+        '400':
+          description: Некорректные данные
+        '403':
+          description: Только преподаватели могут создавать задачи
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+    get:
+      tags: [Trainer]
+      summary: Получить задачи для тренажёра
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [easy, medium, hard]
+        - name: subject
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Список задач
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Problem'
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+
+  /api/trainer/problems/{id}/solve:
+    post:
+      tags: [Trainer]
+      summary: Решить задачу
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Solution'
+      responses:
+        '200':
+          description: Результат решения
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolutionResult'
+        '400':
+          description: Некорректные данные
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+
+  # Награды
+  /api/rewards:
+    post:
+      tags: [Rewards]
+      summary: Создать новую награду
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reward'
+      responses:
+        '201':
+          description: Награда создана
+        '400':
+          description: Некорректные данные
+        '403':
+          description: Только администраторы могут создавать награды
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+    get:
+      tags: [Rewards]
+      summary: Получить доступные награды
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Список наград
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reward'
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+
+  # Викторины
+  /api/quiz/questions:
+    post:
+      tags: [Quiz]
+      summary: Создать новый вопрос для викторины
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuizQuestion'
+      responses:
+        '201':
+          description: Вопрос викторины создан
+        '400':
+          description: Некорректные данные
+        '403':
+          description: Только преподаватели могут создавать вопросы викторины
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+
+  /api/quiz:
+    get:
+      tags: [Quiz]
+      summary: Получить вопросы викторины
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Вопросы викторины
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuizQuestion'
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+
+  /api/quiz/submit:
+    post:
+      tags: [Quiz]
+      summary: Отправить ответы викторины
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/QuizAnswer'
+      responses:
+        '200':
+          description: Результаты викторины
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizResult'
+        '400':
+          description: Некорректные данные
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+
+  # Аутентификация
+  /auth/register/student:
+    post:
+      tags: [Authentication]
+      summary: Регистрация студента
+      description: Создание учётной записи студента
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  example: "Иван"
+                last_name:
+                  type: string
+                  example: "Иванов"
+                email:
+                  type: string
+                  format: email
+                  example: "ivan@university.edu"
+                password:
+                  type: string
+                  example: "password123"
+                group_id:
+                  type: integer
+                  example: 1
+              required: [first_name, last_name, email, password, group_id]
+      responses:
+        '201':
+          description: Студент успешно зарегистрирован
+        '400':
+          description: Некорректные данные
+        '409':
+          description: Пользователь уже существует
+        '500':
+          description: Ошибка сервера
+
+  /auth/register/teacher:
+    post:
+      tags: [Authentication]
+      summary: Регистрация преподавателя
+      description: Создание учётной записи преподавателя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  example: "Петр"
+                last_name:
+                  type: string
+                  example: "Петров"
+                email:
+                  type: string
+                  format: email
+                  example: "petr@university.edu"
+                password:
+                  type: string
+                  example: "password123"
+                department:
+                  type: string
+                  example: "Математический факультет"
+              required: [first_name, last_name, email, password, department]
+      responses:
+        '201':
+          description: Преподаватель успешно зарегистрирован
+        '400':
+          description: Некорректные данные
+        '409':
+          description: Пользователь уже существует
+        '500':
+          description: Ошибка сервера
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Вход в систему
+      description: Аутентификация по email и паролю
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "ivan@university.edu"
+                password:
+                  type: string
+                  example: "password123"
+              required: [email, password]
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Неверные учётные данные
+        '500':
+          description: Ошибка сервера
+
+  # Вопросы
+  /api/groups/{group_id}/questions:
+    post:
+      tags: [Questions]
+      summary: Создать вопрос для группы
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Question'
+      responses:
+        '201':
+          description: Вопрос создан
+        '400':
+          description: Некорректные данные
+        '403':
+          description: Только преподаватели могут создавать вопросы
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+    get:
+      tags: [Questions]
+      summary: Получить вопросы для группы
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Список вопросов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Question'
+        '401':
+          description: Требуется аутентификация
+        '403':
+          description: Доступ запрещён
+        '500':
+          description: Ошибка сервера
+
+  /api/questions/{id}:
+    delete:
+      tags: [Questions]
+      summary: Удалить вопрос
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '204':
+          description: Вопрос удалён
+        '403':
+          description: Только автор может удалить вопрос
+        '404':
+          description: Вопрос не найден
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+
+  /api/questions/{question_id}/answers:
+    post:
+      tags: [Questions]
+      summary: Ответить на вопрос
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: question_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Answer'
+      responses:
+        '201':
+          description: Ответ добавлен
+        '400':
+          description: Некорректные данные
+        '403':
+          description: Только студенты могут отвечать
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+    get:
+      tags: [Questions]
+      summary: Получить ответы на вопрос
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: question_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Список ответов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Answer'
+        '403':
+          description: Доступ запрещён
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+
+  # Обратная связь
+  /api/feedback:
+    post:
+      tags: [Feedback]
+      summary: Отправить отзыв о паре
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Feedback'
+      responses:
+        '201':
+          description: Отзыв отправлен
+        '400':
+          description: Некорректные данные
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+
+  # Лекции
+  /api/lectures:
+    get:
+      tags: [Lectures]
+      summary: Получить список лекций для текущего пользователя
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Список лекций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Lecture'
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+
+  # Пользователи и баллы
+  /api/users/me:
+    get:
+      tags: [Users]
+      summary: Получить данные текущего пользователя
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Данные пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Требуется аутентификация
+        '500':
+          description: Ошибка сервера
+
+  /api/users/{id}/points:
+    get:
+      tags: [Users, Quiz]
+      summary: Получить баллы пользователя
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Количество баллов
+          content:
+            application/json:
+              schema:
+                type: integer
+                example: 150
+        '401':
+          description: Требуется аутентификация
+        '403':
+          description: Доступ запрещён
+        '404':
+          description: Пользователь не найден
+        '500':
+          description: Ошибка сервера
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        first_name:
+          type: string
+          example: "Иван"
+        last_name:
+          type: string
+          example: "Иванов"
+        email:
+          type: string
+          format: email
+          example: "ivan@university.edu"
+        role:
+          type: string
+          enum: [student, teacher, admin]
+          example: "student"
+        points:
+          type: integer
+          example: 150
+        group:
+          $ref: '#/components/schemas/Group'
+        department:
+          type: string
+          example: "Математический факультет"
+      required: [id, first_name, last_name, email, role, group]
+
+    Group:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "МАТ-101"
+        faculty:
+          type: string
+          example: "Математический факультет"
+      required: [id, name]
+
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        text:
+          type: string
+          example: "Можете повторить доказательство теоремы?"
+        teacher:
+          $ref: '#/components/schemas/User'
+        group:
+          $ref: '#/components/schemas/Group'
+        created_at:
+          type: string
+          format: date-time
+        is_active:
+          type: boolean
+          example: true
+      required: [text, teacher, group]
+
+    Answer:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        text:
+          type: string
+          example: "Конечно, вот доказательство..."
+        student:
+          $ref: '#/components/schemas/User'
+        question:
+          $ref: '#/components/schemas/Question'
+        created_at:
+          type: string
+          format: date-time
+      required: [text, student, question]
+
+    Lecture:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Лекция 5: Производные функций"
+        description:
+          type: string
+          example: "В этой лекции мы рассмотрим основные правила дифференцирования."
+        group:
+          $ref: '#/components/schemas/Group'
+        teacher:
+          $ref: '#/components/schemas/User'
+        scheduled_at:
+          type: string
+          format: date-time
+        duration_minutes:
+          type: integer
+          example: 90
+      required: [title, group, teacher, scheduled_at]
+
+    Feedback:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 4
+        comment:
+          type: string
+          example: "Отличная лекция, но темп немного быстрый"
+        lecture:
+          $ref: '#/components/schemas/Lecture'
+        created_at:
+          type: string
+          format: date-time
+      required: [rating, lecture]
+
+    QuizQuestion:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        text:
+          type: string
+          example: "Что такое производная функции?"
+        options:
+          type: array
+          items:
+            type: string
+          example: ["Предел", "Интеграл", "Дифференциал", "Матрица"]
+        correct_answer:
+          type: integer
+          example: 0
+        points:
+          type: integer
+          example: 10
+      required: [text, options]
+
+    QuizAnswer:
+      type: object
+      properties:
+        question_id:
+          type: integer
+          example: 1
+        selected_option_index:
+          type: integer
+          example: 0
+      required: [question_id, selected_option_index]
+
+    QuizResult:
+      type: object
+      properties:
+        total_points:
+          type: integer
+          example: 30
+        correct_answers:
+          type: integer
+          example: 3
+        total_questions:
+          type: integer
+          example: 5
+        earned_points:
+          type: integer
+          example: 10
+
+    Card:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        front_text:
+          type: string
+          example: "Определение предела функции"
+        back_text:
+          type: string
+          example: "Число A называется пределом функции f(x) при x стремящемся к x0..."
+        subject:
+          type: string
+          example: "Математический анализ"
+        topic:
+          type: string
+          example: "Пределы"
+      required: [front_text, back_text]
+
+    Problem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        text:
+          type: string
+          example: "Найдите производную функции f(x) = x^2 + 3x + 1"
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+          example: "easy"
+        subject:
+          type: string
+          example: "Математика"
+        solution_steps:
+          type: array
+          items:
+            type: string
+          example: ["f'(x) = 2x + 3", "Ответ: 2x + 3"]
+      required: [text, difficulty]
+
+    Solution:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        answer:
+          type: string
+          example: "2x + 3"
+      required: [user, answer]
+
+    SolutionResult:
+      type: object
+      properties:
+        is_correct:
+          type: boolean
+          example: true
+        explanation:
+          type: string
+          example: "Правильно! Производная x^2 равна 2x, производная 3x равна 3, производная константы 0"
+        points_earned:
+          type: integer
+          example: 5
+
+    Reward:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Футболка с логотипом факультета"
+        description:
+          type: string
+          example: "Хлопковая футболка с принтом"
+        cost:
+          type: integer
+          example: 100
+        category:
+          type: string
+          example: "merch"
+      required: [name, cost]
