@@ -6,14 +6,12 @@ Python 3.13 + Flask + Flask-RESTx + PyJWT
 - `teacher` — преподаватель
 - `admin` — администратор
 
-### Хранение данных
-Заглушки в памяти (`dict`, `list`) — без БД
-
 ### Аутентификация
 JWT (HS256)
 
 ### Покрытие API
 100% (`swagger.yml`, OpenAPI 3.0)
+
 ---
 
 ## Быстрое развертывание
@@ -39,6 +37,32 @@ pip install -r requirements.txt
 
 # 4. Запустить сервер
 python run.py
+```
+### Структура
+EduQuest_Backend/
+├── app/
+│   ├── __init__.py          # Flask + RESTX инициализация
+│   ├── config.py            # Конфигурация (JWT_SECRET_KEY)
+│   ├── models/              # Dataclasses: User, Group, Question...
+│   ├── services/            # Бизнес-логика (заглушки)
+│   └── api/                 # REST-эндпоинты (по модулям)
+├── tests/                   # Тесты (pytest)
+├── run.py                   # Точка входа
+├── requirements.txt         # Зависимости
+├── pytest.ini               # Конфиг pytest
+└── .gitignore               # Исключения для Git
 
+### Тесты
+```bash
+# Все тесты
+pytest
+
+# Подробный вывод
+pytest -v
+
+# Только тесты викторин
+pytest tests/test_quiz.py -v
+
+```
 
 
