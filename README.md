@@ -38,20 +38,6 @@ pip install -r requirements.txt
 # 4. Запустить сервер
 python run.py
 ```
-### Структура
-EduQuest_Backend/
-> app/
->> __init__.py          # Flask + RESTX инициализация
->> config.py            # Конфигурация (JWT_SECRET_KEY)
->> models/              # Dataclasses: User, Group, Question...
->> services/            # Бизнес-логика (заглушки)
->> api/                 # REST-эндпоинты (по модулям)
-> tests/                   # Тесты (pytest)
-> run.py                   # Точка входа
-> requirements.txt         # Зависимости
-> pytest.ini               # Конфиг pytest
-> .gitignore               # Исключения для Git
-
 ### Тесты
 ```bash
 # Все тесты
@@ -64,6 +50,7 @@ pytest -v
 pytest tests/test_quiz.py -v
 
 ```
+
 
 
 
