@@ -12,7 +12,7 @@ JWT (HS256)
 ### Покрытие API
 100% (`swagger.yml`, OpenAPI 3.0)
 
-###Swagger UI (документация): http://localhost:5000/swagger
+### Swagger UI (документация): http://localhost:5000/swagger
 ---
 
 ## Быстрое развертывание
@@ -51,6 +51,7 @@ pytest -v
 pytest tests/test_quiz.py -v
 
 ```
+
 
 
 
